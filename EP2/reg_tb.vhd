@@ -7,4 +7,6 @@ end reg_tb;
 architecture arc of reg_tb is
 
   flipFlop: process(clock, reset)
+  begin
+
 end arc;

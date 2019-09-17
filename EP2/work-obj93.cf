@@ -1,7 +1,7 @@
 v 4
-file . "reg.vhd" "7c19463a1bc4e944b907732f2898b9c325012ef6" "20190917002539.246":
-  entity reg at 1( 0) + 0 on 36;
-  architecture arc of reg at 15( 269) + 0 on 37;
-file . "test_tb.vhd" "830dace53787c2c90db8f9ce2838a1676d83334f" "20190917002539.248":
-  entity test_tb at 1( 0) + 0 on 38;
-  architecture dut of test_tb at 7( 89) + 0 on 39;
+file . "reg.vhd" "252a18b07861292a79f075781dc878c9486daa0b" "20190917014236.738":
+  entity reg at 1( 0) + 0 on 196;
+  architecture arc of reg at 15( 269) + 0 on 197;
+file . "test_tb.vhd" "ae4b29ef624b9e94b7f208c6c8cd76c7db49ba49" "20190917014236.740":
+  entity test_tb at 1( 0) + 0 on 198;
+  architecture dut of test_tb at 8( 90) + 0 on 199;

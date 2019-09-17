@@ -18,9 +18,8 @@ architecture arc of reg is
 
   begin
 
-  flipFlop: process(clock, reset) is
+  flipFlops: process(clock, reset) is
     begin
-
       if reset = '1' then
         q <= (others => '0');
         q_n <= (others => '1');
