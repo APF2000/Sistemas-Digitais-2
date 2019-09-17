@@ -14,10 +14,7 @@ end reg;
 
 architecture arc of reg is
 
-  signal q_n: bit;
-  signal en : bit;
-
-  signal regt: bit_vector(wordSize-1 downto 0);
+  signal q_n: bit_vector(wordSize-1 downto 0);
 
   begin
 
@@ -26,9 +23,9 @@ architecture arc of reg is
 
       if reset = '1' then
         q <= (others => '0');
-        q_n <= not q;
+        q_n <= (others => '1');
       elsif clock = '1' and clock'event then
-        if en = '1' then
+        if load = '1' then
           q <= d;
           q_n <= not d;
         end if;
