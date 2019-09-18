@@ -30,6 +30,7 @@ architecture testbench of regfile_tb is
     signal ds: bit_vector(wordSize - 1 downto 0);
     signal q1s, q2s: bit_vector(wordSize - 1 downto 0);
 
+    signal deubom : boolean := true;
 begin
   -- component instantiation
     R : component regfile port map (ck, res, rw, rr1s, rr2s, wrs, ds, q1s, q2s);
@@ -70,6 +71,8 @@ begin
        ('0','0', "11", "00", "00", "10", "00", "11"),
        ('1','0', "00", "00", "00", "00", "00", "00"));
   begin
+
+      assert false report  "Begin" severity note;
     wait for 3 ns;
     -- Check for each pattern
     for i in patterns'range loop
@@ -82,9 +85,14 @@ begin
       -- wait for the results
       wait for 10 ns;
       -- check for the outputs
+      if(q1s /= patterns(i).q1s or q2s /= patterns(i).q2s) then
+        deubom <= false;
+      end if;
+
       assert q1s = patterns(i).q1s report "bad count value" severity error;
       assert q2s = patterns(i).q2s report "bad count value" severity error;
     end loop;
+    assert not deubom report "deubom";
     assert false report "end of test" severity note;
     wait; --  Wait forever; this will finish the simulation.
   end process;

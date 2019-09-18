@@ -43,17 +43,19 @@ architecture arc of regfile is
         port map(clock, reset, regWrite, bancoReg(i), dontCare(i));
     end generate;
 
+    --bancoReg(regn-1) <= (others => '0');
     q1 <= bancoReg(to_integer(unsigned(rr1)));
     q2 <= bancoReg(to_integer(unsigned(rr2)));
 
-    PRO: process(reset) is begin
+    PRO: process(clock) is begin
+
       if reset = '1' then
         for i in 0 to regn-1 loop
           bancoReg(i) <= (others => '0');
         end loop;
       end if;
 
-      if regWrite = '1' and clock'event
+      if regWrite = '1' and clock'event and rising_edge(clock)
         and to_integer(unsigned(wr)) /= regn-1 then
           -- um registrador recebe a entrada
           bancoReg(to_integer(unsigned(wr))) <= d;
