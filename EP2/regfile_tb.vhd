@@ -1,7 +1,6 @@
-library IEEE;
-use IEEE.std_logic_1164.all;
-use ieee.math_real.ceil;
-use ieee.math_real.log2;
+library ieee;
+use ieee.numeric_bit.all;
+use ieee.math_real.all;
 
 entity regfile_tb is
 end entity regfile_tb;
@@ -24,17 +23,17 @@ architecture testbench of regfile_tb is
     end component;
 
   -- Signals
-    constant regn: natural :=4;    
-    constant wordSize : natural := 2; 
+    constant regn: natural :=4;
+    constant wordSize : natural := 2;
     signal ck, res, rw : bit;
     signal rr1s, rr2s, wrs: bit_vector(natural(ceil(log2(real(regn)))) - 1 downto 0);
     signal ds: bit_vector(wordSize - 1 downto 0);
     signal q1s, q2s: bit_vector(wordSize - 1 downto 0);
-    
-begin  
-  -- component instantiation  
+
+begin
+  -- component instantiation
     R : component regfile port map (ck, res, rw, rr1s, rr2s, wrs, ds, q1s, q2s);
-      
+
   -- Clock generator
     clk: process is
     begin
@@ -42,7 +41,7 @@ begin
         wait for 5 ns;
         ck <= '1';
         wait for 5 ns;
-    end process clk;  
+    end process clk;
 
   -- Simulation occurs in this process
     process
@@ -50,7 +49,7 @@ begin
             res, rw : bit;
             rr1s, rr2s, wrs: bit_vector(natural(ceil(log2(real(regn)))) - 1 downto 0);
             ds: bit_vector(wordSize - 1 downto 0);
-            q1s, q2s: bit_vector(wordSize - 1 downto 0); 
+            q1s, q2s: bit_vector(wordSize - 1 downto 0);
     end record;
     type pattern_array is array (natural range <>) of pattern_type;
     constant patterns : pattern_array :=
@@ -70,7 +69,6 @@ begin
        ('0','1', "11", "10", "11", "10", "00", "11"),
        ('0','0', "11", "00", "00", "10", "00", "11"),
        ('1','0', "00", "00", "00", "00", "00", "00"));
-
   begin
     wait for 3 ns;
     -- Check for each pattern
@@ -88,8 +86,6 @@ begin
       assert q2s = patterns(i).q2s report "bad count value" severity error;
     end loop;
     assert false report "end of test" severity note;
-    wait; --  Wait forever; this will finish the simulation. 
+    wait; --  Wait forever; this will finish the simulation.
   end process;
 end architecture testbench;
-
-  
