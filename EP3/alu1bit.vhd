@@ -20,22 +20,28 @@ architecture arcalu of alu1bit is
 
   signal co : bit;
   signal Acorrect, Bcorrect : bit;
+  signal s : bit;
 
   begin
-    ADDER : fulladder port map(a, b, cin, set, co);
+    ADDER : fulladder port map(Acorrect, Bcorrect, cin, s, co);
 
-    Acorrect <= a when ainvert = '0'
-                (not a) when ainvert = '1'
-                '0';
-    Bcorrect <= b when binvert = '0'
-                not b when binvert = '1'
-                '0';
+    with ainvert select
+      Acorrect <= a     when '0',
+                  (not a) when '1',
+                  '0'   when others;
 
-    result <= (Acorrect and Bcorrect) when (operation = "00")
-              (Acorrect or Bcorrect)  when (operation = "01")
-              s                       when (operation = "10")
-              less                    when (operation = "11")
-              '0';
+    with binvert select
+      Bcorrect <= b     when '0',
+                  (not b) when '1',
+                  '0'   when others;
+
+    with operation select
+      result <= (Acorrect and Bcorrect) when ("00"),
+                (Acorrect or Bcorrect)  when ("01"),
+                s                       when ("10"),
+                less                    when ("11"),
+                '0'                     when others;
+
     cout <= co;
     set <= s;
     overflow <= cin xor co;

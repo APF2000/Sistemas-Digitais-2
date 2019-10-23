@@ -1,0 +1,4 @@
+v 4
+file . "alu1bit.vhd" "af2ea87740238cbc93a3b946109402981d8c2f40" "20191023232230.559":
+  entity alu1bit at 1( 0) + 0 on 17;
+  architecture arcalu of alu1bit at 13( 276) + 0 on 18;
