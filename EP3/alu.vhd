@@ -25,13 +25,12 @@ architecture arcalu of alu is
     );
   end component;
 
-  signal ignore1, ignore2 : bit_vector(size-1 downto 0);
+  signal sum, ignore : bit_vector(size-1 downto 0);
   signal ainvert, binvert : bit;
   signal op : bit_vector(1 downto 0);
   signal less : bit_vector(size downto 0);
   signal cin, cout : bit_vector(size-1 downto 0);
-  signal aux, auxless, auxF, auxSLT : bit_vector(size-1 downto 0);
-  signal firstBit : bit_vector(size-1 downto 0);
+  signal auxF, auxSLT : bit_vector(size-1 downto 0);
 
   begin
     ainvert <= S(3);
@@ -41,39 +40,34 @@ architecture arcalu of alu is
     less(size) <= '0';
 
     GEN: for i in size-1 downto 0 generate
-        aux(i) <= (not A(i)) and B(i);
-        auxless(i) <= aux(i) or less(i+1);
 
         LOWER_BIT: if i=0 generate
           U0: alu1bit port map
-             (A(i), B(i), auxless(i), '0',
-              auxF(i), cin(i+1), ignore1(i), ignore2(i),
+             (A(i), B(i), less(i), '0',
+              auxF(i), cin(i+1), sum(i), ignore(i),
               ainvert, binvert, op);
-          firstBit(i) <= '1';
+          auxSLT(i) <= not sum(size-1);
         end generate LOWER_BIT;
 
         UPPER_BITS: if i>0 and i<size-1 generate
           U1: alu1bit port map
-             (A(i), B(i), auxless(i), cout(i-1),
-              auxF(i), cin(i+1), ignore1(i), ignore2(i),
+             (A(i), B(i), less(i), cin(i),
+              auxF(i), cin(i+1), sum(i), ignore(i),
               ainvert, binvert, op);
-          firstBit(i) <= '0';
+          auxSLT(i) <= '0';
         end generate UPPER_BITS;
 
         HIGHER_BIT: if i=size-1 generate
           U2: alu1bit port map
-             (A(i), B(i), auxless(i), cout(i-1),
-              auxF(i), Co, ignore1(i), Ov,
+             (A(i), B(i), less(i), cin(i),
+              auxF(i), Co, sum(i), Ov,
               ainvert, binvert, op);
-          firstBit(i) <= '0';
+          auxSLT(i) <= '0';
         end generate HIGHER_BIT;
-
-        auxSLT(i) <= auxless(0) and firstBit(i);
     end generate GEN;
 
     with op select
-      F <=
-           auxSLT when "11",
+      F <= auxSLT when "11",
            auxF when others;
 
     Z <= '0';
