@@ -31,6 +31,7 @@ architecture arcalu of alu is
   signal less : bit_vector(size downto 0);
   signal cin, cout : bit_vector(size-1 downto 0);
   signal auxF, auxSLT : bit_vector(size-1 downto 0);
+  signal Alast, Blast : bit;
 
   begin
     ainvert <= S(3);
@@ -60,7 +61,7 @@ architecture arcalu of alu is
         HIGHER_BIT: if i=size-1 generate
           U2: alu1bit port map
              (A(i), B(i), less(i), cin(i),
-              auxF(i), Co, sum(i), Ov,
+              auxF(i), Co, sum(i), ignore(i),
               ainvert, binvert, op);
           auxSLT(i) <= '0';
         end generate HIGHER_BIT;
@@ -71,4 +72,17 @@ architecture arcalu of alu is
            auxF when others;
 
     Z <= '0';
+
+    with Ainvert select
+      Alast <= A(size-1) when '0',
+              not A(size-1) when '1',
+              '0' when others;
+    with Binvert select
+      Blast <= B(size-1) when '0',
+              not B(size-1) when '1',
+              '0' when others;
+
+    Ov <= (sum(size-1) and (not Alast) and (not Blast))
+      or ((not sum(size-1)) and Alast and Blast);
+
 end architecture;
