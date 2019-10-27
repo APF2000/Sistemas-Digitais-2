@@ -43,10 +43,10 @@ architecture arcalu of alu is
 
         LOWER_BIT: if i=0 generate
           U0: alu1bit port map
-             (A(i), B(i), less(i), '0',
+             (A(i), B(i), less(i), binvert,
               auxF(i), cin(i+1), sum(i), ignore(i),
               ainvert, binvert, op);
-          auxSLT(i) <= not sum(size-1);
+          auxSLT(i) <= sum(size-1);
         end generate LOWER_BIT;
 
         UPPER_BITS: if i>0 and i<size-1 generate
