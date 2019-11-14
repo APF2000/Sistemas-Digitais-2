@@ -32,6 +32,7 @@ architecture arcalu of alu is
   signal cin, cout : bit_vector(size-1 downto 0);
   signal auxF, auxSLT : bit_vector(size-1 downto 0);
   signal Alast, Blast : bit;
+  signal zero, res : bit_vector(size-1 downto 0);
 
   begin
     ainvert <= S(3);
@@ -68,10 +69,13 @@ architecture arcalu of alu is
     end generate GEN;
 
     with op select
-      F <= auxSLT when "11",
+      res <= auxSLT when "11",
            auxF when others;
+    F <= res;
 
-    Z <= '0';
+    zero <= (others => '0');
+    Z <= '1' when res = zero else
+         '0';
 
     with Ainvert select
       Alast <= A(size-1) when '0',
