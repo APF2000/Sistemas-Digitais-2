@@ -11,13 +11,13 @@ end entity signExtend;
 architecture arc of signExtend is
   signal size : bit_vector(63 downto 0);
   signal aux, aux2 : bit_vector(2 downto 0);
-  signal Dformat   : bit_vector(10 downto 0);
-  signal CBZformat : bit_vector(7 downto 0);
-  signal Bformat   : bit_vector(5 downto 0);
+  signal Dformat   : bit_vector(8 downto 0);
+  signal CBZformat : bit_vector(18 downto 0);
+  signal Bformat   : bit_vector(25 downto 0);
   begin
-    Dformat <= i(31 downto 21);
-    CBZformat <= i(31 downto 24);
-    Bformat <= i(31 downto 26);
+    Dformat <= i(20 downto 12);
+    CBZformat <= i(23 downto 5);
+    Bformat <= i(25 downto 0);
 
     o <= size;
     with aux select
