@@ -1,4 +1,9 @@
 v 4
+file . "alu1bit.vhd" "7ce7b4ea79701f50613836b0c1b4ac2ca1f1f994" "20191117012110.762":
+  entity alu at 1( 0) + 0 on 25;
+  architecture arcalu of alu at 21( 435) + 0 on 26;
+  entity alu1bit at 97( 2603) + 0 on 27;
+  architecture arcalu of alu1bit at 106( 2838) + 0 on 28;
 file . "signExtend.vhd" "b490a3315438e208fb32c958e5a500de35573045" "20191116230044.811":
   entity signextend at 1( 0) + 0 on 15;
   architecture arc of signextend at 11( 169) + 0 on 16;
