@@ -1,7 +1,10 @@
 v 4
-file . "alucontrol.vhd" "38f5a8c811423173f9b8dff137711003429a9462" "20191117015136.591":
-  entity alucontrol at 1( 0) + 0 on 29;
-  architecture arc of alucontrol at 12( 209) + 0 on 30;
+file . "controlunit.vhd" "3d76450bb90cc4e1ecab02ab8f13cc8f8edfc47a" "20191117223357.681":
+  entity controlunit at 1( 0) + 0 on 37;
+  architecture arc of controlunit at 21( 447) + 0 on 38;
+file . "alucontrol.vhd" "9d989eeffacac99c519af8bcf83c3957529f42c9" "20191117204821.110":
+  entity alucontrol at 1( 0) + 0 on 31;
+  architecture arc of alucontrol at 12( 209) + 0 on 32;
 file . "signExtend.vhd" "b490a3315438e208fb32c958e5a500de35573045" "20191116230044.811":
   entity signextend at 1( 0) + 0 on 15;
   architecture arc of signextend at 11( 169) + 0 on 16;
