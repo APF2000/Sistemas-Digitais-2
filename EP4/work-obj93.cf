@@ -1,15 +1,15 @@
 v 4
-file . "controlunit.vhd" "3d76450bb90cc4e1ecab02ab8f13cc8f8edfc47a" "20191117223357.681":
-  entity controlunit at 1( 0) + 0 on 37;
-  architecture arc of controlunit at 21( 447) + 0 on 38;
-file . "alucontrol.vhd" "9d989eeffacac99c519af8bcf83c3957529f42c9" "20191117204821.110":
-  entity alucontrol at 1( 0) + 0 on 31;
-  architecture arc of alucontrol at 12( 209) + 0 on 32;
+file . "alu1bit.vhd" "e9e1a180db80f9f9c2447f7b906ef6268ed73cba" "20191117224753.233":
+  entity alu at 1( 0) + 0 on 39;
+  architecture arcalu of alu at 21( 435) + 0 on 40;
+  entity alu1bit at 95( 2542) + 0 on 41;
+  architecture arcalu of alu1bit at 104( 2777) + 0 on 42;
 file . "signExtend.vhd" "b490a3315438e208fb32c958e5a500de35573045" "20191116230044.811":
   entity signextend at 1( 0) + 0 on 15;
   architecture arc of signextend at 11( 169) + 0 on 16;
-file . "alu1bit.vhd" "7ce7b4ea79701f50613836b0c1b4ac2ca1f1f994" "20191117012110.762":
-  entity alu at 1( 0) + 0 on 25;
-  architecture arcalu of alu at 21( 435) + 0 on 26;
-  entity alu1bit at 97( 2603) + 0 on 27;
-  architecture arcalu of alu1bit at 106( 2838) + 0 on 28;
+file . "alucontrol.vhd" "9d989eeffacac99c519af8bcf83c3957529f42c9" "20191117204821.110":
+  entity alucontrol at 1( 0) + 0 on 31;
+  architecture arc of alucontrol at 12( 209) + 0 on 32;
+file . "controlunit.vhd" "3d76450bb90cc4e1ecab02ab8f13cc8f8edfc47a" "20191117223357.681":
+  entity controlunit at 1( 0) + 0 on 37;
+  architecture arc of controlunit at 21( 447) + 0 on 38;
