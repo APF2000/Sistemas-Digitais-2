@@ -36,7 +36,6 @@ architecture arcalu of alu is
   signal auxF, auxSLT : bit_vector(size-1 downto 0);
   signal Alast, Blast : bit;
   signal zero, res : bit_vector(size-1 downto 0);
-  signal sumOv, auxCo : bit;
 
   begin
     ainvert <= S(3);
@@ -66,7 +65,7 @@ architecture arcalu of alu is
         HIGHER_BIT: if i=size-1 generate
           U2: alu1bit port map
              (A(i), B(i), less(i), cin(i),
-              auxF(i), auxCo, sum(i), ignore(i),
+              auxF(i), Co, sum(i), ignore(i),
               ainvert, binvert, op);
           auxSLT(i) <= '0';
         end generate HIGHER_BIT;
@@ -88,14 +87,8 @@ architecture arcalu of alu is
               not B(size-1) when '1',
               '0' when others;
 
-    sumOv <= (sum(size-1) and (not Alast) and (not Blast))
+    Ov <= (sum(size-1) and (not Alast) and (not Blast))
       or ((not sum(size-1)) and Alast and Blast);
-
-    Ov <= not sumOv when (S = "0111")
-          else sumOv;
-
-    Co <= not auxCo when (S = "0111")
-          else auxCo;
 end architecture;
 
 
@@ -111,7 +104,7 @@ end entity;
 architecture arcalu of alu1bit is
   signal co : bit;
   signal Acorrect, Bcorrect : bit;
-  signal s, passB : bit;
+  signal s : bit;
 
   begin
 
@@ -120,9 +113,7 @@ architecture arcalu of alu1bit is
                   (not a) when '1',
                   '0'   when others;
 
-    passB <= '1' when operation = "11"
-             else '0';
-    with binvert and not passB select
+    with binvert select
       Bcorrect <= b     when '0',
                   (not b) when '1',
                   '0'   when others;
