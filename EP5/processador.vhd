@@ -4,88 +4,6 @@ use ieee.numeric_bit.all;
 use ieee.math_real.ceil;
 use ieee.math_real.log2;
 
-entity ram is
-  generic (
-    addressSize : natural := 64;
-    wordSize    : natural := 32
-  );
-  port(
-    -- wr -> write = '1', read = '0'
-    ck, wr : in  bit;
-    addr   : in  bit_vector(addressSize-1 downto 0);
-    data_i : in  bit_vector(wordSize-1 downto 0);
-    data_o : out bit_vector(wordSize-1 downto 0)
-  );
-end ram;
-
-architecture arc of ram is
-
-  type memory is array (2**addressSize-1 downto 0)
-      of bit_vector(wordSize-1 downto 0);
-  signal chip : memory;
-
-    begin
-    process(ck, wr, addr, data_i)
-      begin
-        if rising_edge(ck) then
-          -- write
-          if wr = '1' then
-            chip(to_integer(unsigned(addr))) <= data_i;
-          else
-          end if;
-        else
-        end if;
-    end process;
-
-    -- read
-    data_o <= chip(to_integer(unsigned(addr)));
-end arc;
-
-library ieee;
-use std.textio.all;
-use ieee.numeric_bit.all;
-entity rom is
-  generic(
-    addressSize : natural := 64;
-    wordSize    : natural := 32;
-    mifFileName : string  := "rom.dat"
-  );
-  port(
-    addr : in  bit_vector(addressSize-1 downto 0);
-    data : out bit_vector(wordSize-1 downto 0)
-  );
-end rom;
-
-architecture arc of rom is
-
-  constant address : natural := 2**addressSize;
-  type memory is array (0 to address-1)
-      of bit_vector(wordSize-1 downto 0);
-
-  impure function init_mem(nameOfFile : in string) return memory is
-      file mif_file : text open read_mode is nameOfFile;
-      variable mif_line : line;
-      variable temp_bv : bit_vector(wordSize-1 downto 0);
-      variable temp_mem : memory;
-  begin
-      for i in memory'range loop
-          readline(mif_file, mif_line);
-          read(mif_line, temp_bv);
-          temp_mem(i) := temp_bv;
-      end loop;
-      return temp_mem;
-  end;
-
-  constant mem : memory := init_mem(mifFileName);
-
-  begin
-    data <= mem(to_integer(unsigned(addr)));
-end arc;
-
-library ieee;
-use ieee.numeric_bit.all;
-use ieee.math_real.ceil;
-use ieee.math_real.log2;
 entity reg is
   generic(wordSize: natural := 4);
   port(
@@ -482,7 +400,7 @@ architecture arcdata of datapath is
 
   signal readRegister2 : bit_vector(4 downto 0);
   signal writeDataReg, writeDataMem, readData1, readData2 : bit_vector(63 downto 0);
-  signal ALUresult, nextInstr, shiftleft2 : bit_vector(63 downto 0);
+  signal ALUresult, nextInstrAddr, shiftleft2, shiftleft2Aux : bit_vector(63 downto 0);
   signal instrPlus4, instrPlusShift, extendedSign : bit_vector(63 downto 0);
   signal imAddrAux : bit_vector(63 downto 0);
   signal src : bit_vector(63 downto 0);
@@ -501,7 +419,7 @@ architecture arcdata of datapath is
         instrPlus4, sumOp, open, -- F,S,Z
         open, open -- Ov, Co
       );
-    nextInstrAlu: alu port map
+    nextInstrAddrAlu: alu port map
       (
         imAddrAux, shiftleft2, -- A, B
         instrPlusShift, sumOp, open, --F, S, Z
@@ -515,7 +433,7 @@ architecture arcdata of datapath is
       );
     signExtendUnit: signExtend port map
       (
-        imOutAux, shiftleft2
+        imOutAux, shiftleft2Aux
       );
     imOutAux <= imOut;
     opcode <= imOutAux(31 downto 21);
@@ -524,6 +442,11 @@ architecture arcdata of datapath is
     dmIn <= writeDataMem;
 
     dmAddr <= ALUresult;
+
+    shiftleft2 <= shiftleft2Aux sll 2;
+
+    -- nextInstrAddr
+    imAddr <= nextInstrAddr;
 
     process(clock, reset)
       begin
@@ -536,9 +459,9 @@ architecture arcdata of datapath is
           end if;
 
           if pcsrc = '1' then
-            nextInstr <= instrPlusShift;
+            nextInstrAddr <= instrPlusShift;
           else
-            nextInstr <= instrPlus4;
+            nextInstrAddr <= instrPlus4;
           end if;
 
           if aluSrc = '1' then
@@ -554,7 +477,7 @@ end arcdata;
 entity polilegsc is
   port (
     clock, reset : in bit;
-    --Data memory
+    -- Data memory
     dmem_addr : out bit_vector(63 downto 0);
     dmem_dati : out bit_vector(63 downto 0);
     dmem_dato : in bit_vector(63 downto 0);
@@ -566,5 +489,103 @@ entity polilegsc is
 end entity;
 
 architecture arcpolileg of polilegsc is
+  component datapath is
+    generic (
+      size : natural := 64
+    );
+    port(
+      -- Common
+      clock, reset : in bit;
+      -- From control unit
+      reg2loc, pcsrc, memToReg : in bit;
+      aluCtrl : in bit_vector(3 downto 0);
+      aluSrc, regWrite : in bit;
+      -- To control unit
+      opcode : out bit_vector(10 downto 0);
+      zero : out bit;
+      -- IM interface (instruction memory)
+      imAddr : out bit_vector(63 downto 0);
+      imOut : in bit_vector(31 downto 0);
+      -- DM interface (data memory)
+      dmAddr : out bit_vector(63 downto 0);
+      dmIn   : out bit_vector(63 downto 0);
+      dmOut  : in  bit_vector(63 downto 0)
+    );
+  end component;
+  component controlunit is
+    port (
+      -- To datapath
+      reg2loc      : out bit;
+      uncondBranch : out bit;
+      branch       : out bit;
+      memRead      : out bit;
+      memToReg     : out bit;
+      aluOp        : out bit_vector(1 downto 0);
+      memWrite     : out bit;
+      aluSrc       : out bit;
+      regWrite     : out bit;
+      -- From datapath
+      opcode       : in bit_vector(10 downto 0)
+    );
+  end component;
+  component alucontrol is
+    port (
+      aluop: in bit_vector(1 downto 0);
+      opcode : in bit_vector(10 downto 0);
+      aluCtrl : out bit_vector(3 downto 0)
+    );
+  end component;
+
+  signal dmAddrAux, dmInAux, dmOutAux : bit_vector(63 downto 0);
+  signal nextInstrAddr : bit_vector(63 downto 0);
+  signal instruction : bit_vector(31 downto 0);
+  signal reg2loc, uncondBranch, branch : bit;
+  signal memRead, memToReg : bit;
+  signal aluOp : bit_vector(1 downto 0);
+  signal aluCtrl : bit_vector(3 downto 0);
+  signal memWrite, aluSrc, regWrite : bit;
+  signal opcode : bit_vector(10 downto 0);
+  signal zero, pcsrc : bit;
+
   begin
+    data: datapath port map
+     (
+      clock, reset,
+      -- Control Unit
+      reg2loc, pcsrc, memToReg,
+      aluCtrl, aluSrc, regWrite,
+      opcode, zero,
+      -- Instruction Memory
+      nextInstrAddr, instruction,
+      -- Data memory
+      dmAddrAux, dmInAux, dmOutAux
+     );
+    -- imem_addr ???
+    instruction <= imem_data;
+    dmem_addr <= dmAddrAux ;
+    dmem_dati <= dmInAux;
+    dmOutAux <= dmem_dato;
+    control: controlunit port map
+     (
+      reg2loc, uncondBranch, branch,
+      memRead, memToReg,
+      aluOp, memWrite,
+      aluSrc, regWrite,
+      opcode
+     );
+    pcsrc <= uncondBranch or (zero and branch);
+
+    ctrlalu: alucontrol port map
+      (
+        aluOp, opcode, aluCtrl
+      );
+
+    process(clock, reset)
+      begin
+        if memWrite = '1' then
+          dmem_we <= '1';
+        else
+          dmem_we <= '0';
+      end if;
+    end process;
 end arcpolileg;
