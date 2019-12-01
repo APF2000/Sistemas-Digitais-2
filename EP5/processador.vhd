@@ -550,3 +550,21 @@ architecture arcdata of datapath is
         end if;
     end process;
 end arcdata;
+
+entity polilegsc is
+  port (
+    clock, reset : in bit;
+    --Data memory
+    dmem_addr : out bit_vector(63 downto 0);
+    dmem_dati : out bit_vector(63 downto 0);
+    dmem_dato : in bit_vector(63 downto 0);
+    dmem_we : out bit;
+    -- Instruction memory
+    imem_addr : out bit_vector(63 downto 0);
+    imem_data : in bit_vector(31 downto 0)
+  );
+end entity;
+
+architecture arcpolileg of polilegsc is
+  begin
+end arcpolileg;
