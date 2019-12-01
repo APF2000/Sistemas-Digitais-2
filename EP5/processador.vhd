@@ -199,141 +199,85 @@ end arc;
 library ieee;
 use ieee.numeric_bit.all;
 entity alu1bit is
-  port (
-    a, b, less, cin             : in  bit;
-    result, cout, set, overflow : out bit;
-    ainvert, binvert            : in  bit;
-    operation                   : in  bit_vector(1 downto 0)
+  port(
+    a, b, less, cin: in bit;
+    result, cout, set, overflow: out bit;
+    ainvert, binvert: in bit;
+    operation: in bit_vector(1 downto 0)
   );
 end entity;
 
 architecture arcalu of alu1bit is
-  component fulladder
-    port(
-      a, b, cin : in  bit;
-      s, cout   : out bit
-    );
-  end component;
-
-  signal co : bit;
-  signal Acorrect, Bcorrect : bit;
-  signal s : bit;
-
+  signal entradaa: bit ;
+  signal entradab: bit;
+  signal soma: bit;
+  signal ou: bit;
+  signal e: bit;
+  signal cou: bit;
   begin
-    ADDER : fulladder port map(Acorrect, Bcorrect, cin, s, co);
-
-    with ainvert select
-      Acorrect <= a     when '0',
-                  (not a) when '1',
-                  '0'   when others;
-
-    with binvert select
-      Bcorrect <= b     when '0',
-                  (not b) when '1',
-                  '0'   when others;
-
+    entradaa <= (not a) when ainvert = '1' else a;
+    entradab <= (not b) when binvert = '1' else b;
+    cou <= (entradaa and entradab) or (cin and (entradaa xor entradab));
+    overflow <= cou xor cin;
+    cout<= cou;
+    soma <= entradaa xor entradab xor cin;
+    set <= soma;
+    ou <= entradaa or entradab;
+    e <= entradaa and entradab;
     with operation select
-      result <= (Acorrect and Bcorrect) when ("00"),
-                (Acorrect or Bcorrect)  when ("01"),
-                s                       when ("10"),
-                less                    when ("11"),
-                '0'                     when others;
-
-    cout <= co;
-    set <= s;
-    overflow <= cin xor co;
+    	result <= e when "00",
+        		    ou when "01",
+                soma when "10",
+                b when others;
 end arcalu;
+
 
 library ieee;
 use ieee.numeric_bit.all;
 entity alu is
-  generic (
-    size: natural := 10 --bit size
+  generic(
+    size : natural := 10
   );
   port(
-    A, B : in bit_vector(size-1 downto 0); --inputs
-    F    : out bit_vector(size-1 downto 0); --output
-    S    : in bit_vector(3 downto 0); --op selection
-    Z    : out bit; --zero flag
-    Ov   : out bit; --overflow flag
-    Co   : out bit --carry out
+    A, B : in bit_vector(size - 1 downto 0);
+    F : out bit_vector(size - 1 downto 0);
+    S : in bit_vector(3 downto 0);
+    Z : out bit;
+    Ov : out bit;
+    Co : out bit
   );
-end entity alu;
-
-architecture arcalu of alu is
-  component alu1bit
-    port (
-      a, b, less, cin             : in  bit;
-      result, cout, set, overflow : out bit;
-      ainvert, binvert            : in  bit;
-      operation                   : in  bit_vector(1 downto 0)
+end entity;
+architecture arch_alu of alu is
+  component alu1bit is
+    port(
+      a,b,less,cin: in bit;
+      result,cout,set,overflow: out bit;
+      ainvert,binvert: in bit;
+      operation: in bit_vector(1 downto 0)
     );
   end component;
-
-  signal sum, ignore : bit_vector(size-1 downto 0);
-  signal ainvert, binvert : bit;
-  signal op : bit_vector(1 downto 0);
-  signal less : bit_vector(size downto 0);
-  signal cin, cout : bit_vector(size-1 downto 0);
-  signal auxF, auxSLT : bit_vector(size-1 downto 0);
-  signal Alast, Blast : bit;
-  signal zero, res : bit_vector(size-1 downto 0);
-
+  signal entradaA: bit_vector(size - 1 downto 0);
+  signal entradaB: bit_vector(size - 1 downto 0);
+  signal Cin: bit;
+  signal Set: bit_vector(size - 1 downto 0);
+  signal Overflow: bit_vector(size - 1 downto 0);
+  signal Result: bit_vector(size - 1 downto 0);
+  signal Cou: bit_vector(size - 1 downto 0);
+  signal Operation: bit_vector(1 downto 0);
   begin
-    ainvert <= S(3);
-    binvert <= S(2);
-    op(1) <= S(1);
-    op(0) <= S(0);
-    less(size) <= '0';
-
-    GEN: for i in size-1 downto 0 generate
-
-        LOWER_BIT: if i=0 generate
-          U0: alu1bit port map
-             (A(i), B(i), less(i), binvert,
-              auxF(i), cin(i+1), sum(i), ignore(i),
-              ainvert, binvert, op);
-          auxSLT(i) <= sum(size-1);
-        end generate LOWER_BIT;
-
-        UPPER_BITS: if i>0 and i<size-1 generate
-          U1: alu1bit port map
-             (A(i), B(i), less(i), cin(i),
-              auxF(i), cin(i+1), sum(i), ignore(i),
-              ainvert, binvert, op);
-          auxSLT(i) <= '0';
-        end generate UPPER_BITS;
-
-        HIGHER_BIT: if i=size-1 generate
-          U2: alu1bit port map
-             (A(i), B(i), less(i), cin(i),
-              auxF(i), Co, sum(i), ignore(i),
-              ainvert, binvert, op);
-          auxSLT(i) <= '0';
-        end generate HIGHER_BIT;
-    end generate GEN;
-
-    with op select
-      res <= auxSLT when "11",
-           auxF when others;
-    F <= res;
-
-    zero <= (others => '0');
-    Z <= '1' when res = zero else
-         '0';
-
-    with Ainvert select
-      Alast <= A(size-1) when '0',
-              not A(size-1) when '1',
-              '0' when others;
-    with Binvert select
-      Blast <= B(size-1) when '0',
-              not B(size-1) when '1',
-              '0' when others;
-
-    Ov <= (sum(size-1) and (not Alast) and (not Blast))
-      or ((not sum(size-1)) and Alast and Blast);
-end architecture;
+    a0:for i in size - 1 downto 1 generate
+      a1:alu1bit port map (A(i),B(i),'0',Cou(i-1),Result(i),Cou(i),Set(i),Overflow(i),S(3),S(2),Operation);
+    end generate;
+    a2:alu1bit port map(A(0),B(0),Set(size - 1),Cin,Result(0),Cou(0),Set(0),Overflow(0),S(3),S(2),Operation);
+    Operation <= S(1 downto 0);
+    Cin <= S(3) or S(2);
+    entradaA <= (not A) when S(3) = '1' else A;
+    entradaB <= (not B) when S(2) = '1' else B;
+    Co <= Cou(size - 1);
+    Ov <= Cou(size - 1) xor Cou(size - 2);
+    F <= Result;
+    Z <= '1' when unsigned(Result) = 0 else '0';
+end arch_alu;
 
 library ieee;
 use ieee.numeric_bit.all;
@@ -480,6 +424,9 @@ use ieee.numeric_bit.all;
 use ieee.math_real.ceil;
 use ieee.math_real.log2;
 entity datapath is
+  generic (
+    size : natural := 64
+  );
   port(
     -- Common
     clock, reset : in bit;
@@ -515,7 +462,7 @@ architecture arcdata of datapath is
   end component;
   component alu is
     generic (
-      size64: natural := 64 --bit size
+      size: natural := 64 --bit size
     );
     port(
       A, B : in bit_vector(size-1 downto 0); --inputs
@@ -534,50 +481,70 @@ architecture arcdata of datapath is
   end component;
 
   signal readRegister2 : bit_vector(4 downto 0);
-  signal writeData, readData1, readData2 : bit_vector(63 downto 0);
-  signal ALUresult, muxPC, shiftleft2 : bit_vector(63 downto 0);
-  signal ignore : bit_vector(10 downto 0);
-  constant sumOp : bit_vector(3 downto 0) : "0010";
+  signal writeDataReg, writeDataMem, readData1, readData2 : bit_vector(63 downto 0);
+  signal ALUresult, nextInstr, shiftleft2 : bit_vector(63 downto 0);
+  signal instrPlus4, instrPlusShift, extendedSign : bit_vector(63 downto 0);
+  signal imAddrAux : bit_vector(63 downto 0);
+  signal src : bit_vector(63 downto 0);
+  signal imOutAux : bit_vector(31 downto 0);
+  constant sumOp : bit_vector(3 downto 0) := "0010";
   begin
     bancoReg: regfile port map
       (
         clock, reset, regWrite,
-        imOut(9 downto 5), readRegister2, imOut(4 downto 0),
-        writeData, readData1, readData2
+        imOutAux(9 downto 5), readRegister2, imOutAux(4 downto 0),
+        writeDataReg, readData1, readData2
       );
     add4: alu port map
       (
-        imAddr, to_bitvector(size),  -- A, B
-        muxPC, sumOp, ignore(0), -- F,S,Z
-        ignore(1), ignore(2) -- Ov, Co
+        imAddrAux, X"0000_0000_0000_0004",  -- A, B
+        instrPlus4, sumOp, open, -- F,S,Z
+        open, open -- Ov, Co
       );
-    nextInstr: alu port map
+    nextInstrAlu: alu port map
       (
-        imAddr, shiftleft2
+        imAddrAux, shiftleft2, -- A, B
+        instrPlusShift, sumOp, open, --F, S, Z
+        open, open -- Ov, Co
       );
     mainAdder: alu port map
       (
-
+        readData1, src,
+        dmAddr, aluCtrl, zero,
+        open, open
       );
-    signExtend: signExtend port map
+    signExtendUnit: signExtend port map
       (
-        imOut, shiftleft2
+        imOutAux, shiftleft2
       );
+    imOutAux <= imOut;
+    opcode <= imOutAux(31 downto 21);
+
+    writeDataMem <= readData2;
+    dmIn <= writeDataMem;
+
+    dmAddr <= ALUresult;
 
     process(clock, reset)
       begin
         if rising_edge(clock) then
-          -- write
+
           if reg2loc = '1' then
             readRegister2 <= dmOut(4 downto 0);
           else
             readRegister2 <= dmOut(20 downto 16);
           end if;
 
-          if memRead = '1' then
-            writeData <= dmOut;
+          if pcsrc = '1' then
+            nextInstr <= instrPlusShift;
           else
-            writeData <= ALUresult;
+            nextInstr <= instrPlus4;
+          end if;
+
+          if aluSrc = '1' then
+            src <= extendedSign;
+          else
+            src <= readData2;
           end if;
         else
         end if;
