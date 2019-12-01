@@ -477,6 +477,8 @@ end architecture;
 
 library ieee;
 use ieee.numeric_bit.all;
+use ieee.math_real.ceil;
+use ieee.math_real.log2;
 entity datapath is
   port(
     -- Common
@@ -488,13 +490,96 @@ entity datapath is
     -- To control unit
     opcode : out bit_vector(10 downto 0);
     zero : out bit;
-    -- IM interface
+    -- IM interface (instruction memory)
     imAddr : out bit_vector(63 downto 0);
-    dmIn : out bit_vector(63 downto 0);
-    dmOut : in bit_vector(63 downto 0)
+    imOut : in bit_vector(31 downto 0);
+    -- DM interface (data memory)
+    dmAddr : out bit_vector(63 downto 0);
+    dmIn   : out bit_vector(63 downto 0);
+    dmOut  : in  bit_vector(63 downto 0)
   );
 end entity datapath;
 library ieee;
 architecture arcdata of datapath is
+  component regfile is
+    generic(
+      regn: natural := 32;
+      wordSize: natural := 64
+    );
+    port(
+      clock, reset, regWrite : in bit;
+      rr1, rr2, wr: in bit_vector(natural(ceil(log2(real(regn))))-1 downto 0);
+      d           : in  bit_vector(wordSize-1 downto 0);
+      q1, q2      : out bit_vector(wordSize-1 downto 0)
+    );
+  end component;
+  component alu is
+    generic (
+      size64: natural := 64 --bit size
+    );
+    port(
+      A, B : in bit_vector(size-1 downto 0); --inputs
+      F    : out bit_vector(size-1 downto 0); --output
+      S    : in bit_vector(3 downto 0); --op selection
+      Z    : out bit; --zero flag
+      Ov   : out bit; --overflow flag
+      Co   : out bit --carry out
+    );
+  end component;
+  component signExtend is
+    port(
+      i: in bit_vector(31 downto 0);
+      o: out bit_vector(63 downto 0)
+    );
+  end component;
+
+  signal readRegister2 : bit_vector(4 downto 0);
+  signal writeData, readData1, readData2 : bit_vector(63 downto 0);
+  signal ALUresult, muxPC, shiftleft2 : bit_vector(63 downto 0);
+  signal ignore : bit_vector(10 downto 0);
+  constant sumOp : bit_vector(3 downto 0) : "0010";
   begin
+    bancoReg: regfile port map
+      (
+        clock, reset, regWrite,
+        imOut(9 downto 5), readRegister2, imOut(4 downto 0),
+        writeData, readData1, readData2
+      );
+    add4: alu port map
+      (
+        imAddr, to_bitvector(size),  -- A, B
+        muxPC, sumOp, ignore(0), -- F,S,Z
+        ignore(1), ignore(2) -- Ov, Co
+      );
+    nextInstr: alu port map
+      (
+        imAddr, shiftleft2
+      );
+    mainAdder: alu port map
+      (
+
+      );
+    signExtend: signExtend port map
+      (
+        imOut, shiftleft2
+      );
+
+    process(clock, reset)
+      begin
+        if rising_edge(clock) then
+          -- write
+          if reg2loc = '1' then
+            readRegister2 <= dmOut(4 downto 0);
+          else
+            readRegister2 <= dmOut(20 downto 16);
+          end if;
+
+          if memRead = '1' then
+            writeData <= dmOut;
+          else
+            writeData <= ALUresult;
+          end if;
+        else
+        end if;
+    end process;
 end arcdata;

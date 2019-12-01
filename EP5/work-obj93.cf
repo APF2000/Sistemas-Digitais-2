@@ -1,24 +1,24 @@
 v 4
-file . "processador.vhd" "6e6bf4ffd359ec11b9e942363cdee0f6d208842d" "20191130220147.690":
-  entity ram at 1( 0) + 0 on 48;
-  architecture arc of ram at 21( 441) + 0 on 49;
-  entity rom at 44( 927) + 0 on 50;
-  architecture arc of rom at 59( 1243) + 0 on 51;
-  entity reg at 85( 1962) + 0 on 52;
-  architecture arc of reg at 100( 2280) + 0 on 53;
-  entity regfile at 120( 2670) + 0 on 54;
-  architecture arc of regfile at 139( 3138) + 0 on 55;
-  entity fulladder at 184( 4305) + 0 on 56;
-  architecture arc of fulladder at 193( 4440) + 0 on 57;
-  entity alu1bit at 199( 4562) + 0 on 58;
-  architecture arcalu of alu1bit at 210( 4837) + 0 on 59;
-  entity alu at 247( 5754) + 0 on 60;
-  architecture arcalu of alu at 263( 6147) + 0 on 61;
-  entity alucontrol at 338( 8314) + 0 on 62;
-  architecture arc of alucontrol at 348( 8522) + 0 on 63;
-  entity signextend at 365( 9055) + 0 on 64;
-  architecture arc of signextend at 374( 9223) + 0 on 65;
-  entity controlunit at 401( 10117) + 0 on 66;
-  architecture arc of controlunit at 418( 10523) + 0 on 67;
-  entity datapath at 478( 12399) + 0 on 68;
-  architecture arcdata of datapath at 497( 12895) + 0 on 69;
+file . "processador.vhd" "69082970704c179aa821ae67f4ce45e623c40d9d" "20191130222800.989":
+  entity ram at 1( 0) + 0 on 114;
+  architecture arc of ram at 21( 441) + 0 on 115;
+  entity rom at 44( 927) + 0 on 116;
+  architecture arc of rom at 59( 1243) + 0 on 117;
+  entity reg at 85( 1962) + 0 on 118;
+  architecture arc of reg at 100( 2280) + 0 on 119;
+  entity regfile at 120( 2670) + 0 on 120;
+  architecture arc of regfile at 139( 3138) + 0 on 121;
+  entity fulladder at 184( 4305) + 0 on 122;
+  architecture arc of fulladder at 193( 4440) + 0 on 123;
+  entity alu1bit at 199( 4562) + 0 on 124;
+  architecture arcalu of alu1bit at 210( 4837) + 0 on 125;
+  entity alu at 247( 5754) + 0 on 126;
+  architecture arcalu of alu at 263( 6147) + 0 on 127;
+  entity alucontrol at 338( 8314) + 0 on 128;
+  architecture arc of alucontrol at 348( 8522) + 0 on 129;
+  entity signextend at 365( 9055) + 0 on 130;
+  architecture arc of signextend at 374( 9223) + 0 on 131;
+  entity controlunit at 401( 10117) + 0 on 132;
+  architecture arc of controlunit at 418( 10523) + 0 on 133;
+  entity datapath at 478( 12399) + 0 on 134;
+  architecture arcdata of datapath at 497( 12896) + 0 on 135;
