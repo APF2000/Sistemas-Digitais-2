@@ -396,53 +396,61 @@ architecture arcdata of datapath is
       o: out bit_vector(63 downto 0)
     );
   end component;
+  component reg is
+    generic(wordSize: natural := 64);
+    port(
+      clock: in  bit;
+      reset:  in  bit;
+      load:  in  bit;
+      d:     in  bit_vector(wordSize-1 downto 0);
+      q:     out bit_vector(wordSize-1 downto 0)
+    );
+  end component;
 
   signal readRegister2 : bit_vector(4 downto 0);
-  signal writeDataReg, writeDataMem, readData1, readData2 : bit_vector(63 downto 0);
-  signal ALUresult, nextInstrAddr, shiftleft2, shiftleft2Aux : bit_vector(63 downto 0);
-  signal instrPlus4, instrPlusShift, extendedSign : bit_vector(63 downto 0);
-  signal imAddrAux : bit_vector(63 downto 0);
+  signal writeDataReg, readData1, readData2 : bit_vector(63 downto 0);
+  signal nextInstrAddr, shiftleft2, extendedSign : bit_vector(63 downto 0);
+  signal instrPlus4, instrPlusShift : bit_vector(63 downto 0);
   signal src : bit_vector(63 downto 0);
-  signal imOutAux : bit_vector(31 downto 0);
-  constant sumOp : bit_vector(3 downto 0) := "0010";
+  signal readAddresIM : bit_vector(63 downto 0);
+  signal mainALUresult : bit_vector(63 downto 0);
+
   begin
     bancoReg: regfile port map
       (
         clock, reset, regWrite,
-        imOutAux(9 downto 5), readRegister2, imOutAux(4 downto 0),
+        imOut(9 downto 5), readRegister2, imOut(4 downto 0),
         writeDataReg, readData1, readData2
       );
     add4: alu port map
       (
-        imAddrAux, X"0000_0000_0000_0004",  -- A, B
+        readAddresIM, X"0000_0000_0000_0004",  -- A, B
         instrPlus4, "0010", open, -- F,S,Z
         open, open -- Ov, Co
       );
     nextInstrAddrAlu: alu port map
       (
-        imAddrAux, shiftleft2, -- A, B
+        readAddresIM, shiftleft2, -- A, B
         instrPlusShift, "0010", open, --F, S, Z
         open, open -- Ov, Co
       );
     mainAdder: alu port map
       (
         readData1, src,
-        ALUresult, aluCtrl, zero,
+        mainALUresult, aluCtrl, zero,
         open, open
       );
     signExtendUnit: signExtend port map
       (
-        imOutAux, shiftleft2Aux
+        imOut, extendedSign
       );
-    imOutAux <= imOut;
-    opcode <= imOutAux(31 downto 21);
 
-    writeDataMem <= readData2;
-    dmIn <= writeDataMem;
+    opcode <= imOut(31 downto 21);
 
-    dmAddr <= ALUresult;
+    dmAddr <= mainALUresult;
+    dmIn <= readData2;
 
-    shiftleft2 <= shiftleft2Aux sll 2;
+    shiftleft2 <= extendedSign sll 2;
 
     with reg2loc select
       readRegister2 <= dmOut(4 downto 0) when '1',
@@ -450,11 +458,23 @@ architecture arcdata of datapath is
     with pcsrc select
       nextInstrAddr <= instrPlusShift when '1',
                        instrPlus4 when '0';
-    imAddr <= nextInstrAddr;
+    imAddr <= readAddresIM;
 
     with aluSrc select
       src <= extendedSign when '1',
              readData2 when '0';
+
+    with memToReg select
+      writeDataReg <= mainALUresult when '0',
+                      dmOut when '1';
+
+     pc: reg port map
+      (
+       clock, reset,
+       load => '1',
+       d => nextInstrAddr,
+       q => readAddresIM
+      );
 
 end arcdata;
 
@@ -519,20 +539,8 @@ architecture arcpolileg of polilegsc is
       aluCtrl : out bit_vector(3 downto 0)
     );
   end component;
-  component reg is
-    generic(wordSize: natural := 64);
-    port(
-      clock: in  bit;
-      reset:  in  bit;
-      load:  in  bit;
-      d:     in  bit_vector(wordSize-1 downto 0);
-      q:     out bit_vector(wordSize-1 downto 0)
-    );
-  end component;
 
-  signal dmInAux, dmOutAux : bit_vector(63 downto 0);
   signal nextInstrAddr : bit_vector(63 downto 0);
-  signal instruction : bit_vector(31 downto 0);
   signal reg2loc, uncondBranch, branch : bit;
   signal memRead, memToReg : bit;
   signal aluOp : bit_vector(1 downto 0);
@@ -550,12 +558,10 @@ architecture arcpolileg of polilegsc is
       aluCtrl, aluSrc, regWrite,
       opcode, zero,
       -- Instruction Memory
-      imem_addr, instruction,
+      imem_addr, imem_data,
       -- Data memory
       dmem_addr, dmem_dati, dmem_dato
      );
-
-    instruction <= imem_data;
 
     control: controlunit port map
      (
