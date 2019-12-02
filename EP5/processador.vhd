@@ -5,7 +5,7 @@ use ieee.math_real.ceil;
 use ieee.math_real.log2;
 
 entity reg is
-  generic(wordSize: natural := 4);
+  generic(wordSize: natural := 64);
   port(
     clock: in  bit;
     reset:  in  bit;
@@ -79,11 +79,10 @@ architecture arc of regfile is
         port map(clock, reset, regWrite, bancoReg(i), dontCare(i));
     end generate;
 
-    --bancoReg(regn-1) <= (others => '0');
     q1 <= bancoReg(to_integer(unsigned(rr1)));
     q2 <= bancoReg(to_integer(unsigned(rr2)));
 
-    PRO: process(clock) is begin
+    PRO: process(clock, reset) is begin
 
       if reset = '1' then
         for i in 0 to regn-1 loop
@@ -154,7 +153,7 @@ library ieee;
 use ieee.numeric_bit.all;
 entity alu is
   generic(
-    size : natural := 10
+    size : natural := 64
   );
   port(
     A, B : in bit_vector(size - 1 downto 0);
@@ -416,19 +415,19 @@ architecture arcdata of datapath is
     add4: alu port map
       (
         imAddrAux, X"0000_0000_0000_0004",  -- A, B
-        instrPlus4, sumOp, open, -- F,S,Z
+        instrPlus4, "0010", open, -- F,S,Z
         open, open -- Ov, Co
       );
     nextInstrAddrAlu: alu port map
       (
         imAddrAux, shiftleft2, -- A, B
-        instrPlusShift, sumOp, open, --F, S, Z
+        instrPlusShift, "0010", open, --F, S, Z
         open, open -- Ov, Co
       );
     mainAdder: alu port map
       (
         readData1, src,
-        dmAddr, aluCtrl, zero,
+        ALUresult, aluCtrl, zero,
         open, open
       );
     signExtendUnit: signExtend port map
@@ -445,33 +444,18 @@ architecture arcdata of datapath is
 
     shiftleft2 <= shiftleft2Aux sll 2;
 
-    -- nextInstrAddr
+    with reg2loc select
+      readRegister2 <= dmOut(4 downto 0) when '1',
+                       dmOut(20 downto 16) when '0';
+    with pcsrc select
+      nextInstrAddr <= instrPlusShift when '1',
+                       instrPlus4 when '0';
     imAddr <= nextInstrAddr;
 
-    process(clock, reset)
-      begin
-        if rising_edge(clock) then
+    with aluSrc select
+      src <= extendedSign when '1',
+             readData2 when '0';
 
-          if reg2loc = '1' then
-            readRegister2 <= dmOut(4 downto 0);
-          else
-            readRegister2 <= dmOut(20 downto 16);
-          end if;
-
-          if pcsrc = '1' then
-            nextInstrAddr <= instrPlusShift;
-          else
-            nextInstrAddr <= instrPlus4;
-          end if;
-
-          if aluSrc = '1' then
-            src <= extendedSign;
-          else
-            src <= readData2;
-          end if;
-        else
-        end if;
-    end process;
 end arcdata;
 
 entity polilegsc is
@@ -535,8 +519,18 @@ architecture arcpolileg of polilegsc is
       aluCtrl : out bit_vector(3 downto 0)
     );
   end component;
+  component reg is
+    generic(wordSize: natural := 64);
+    port(
+      clock: in  bit;
+      reset:  in  bit;
+      load:  in  bit;
+      d:     in  bit_vector(wordSize-1 downto 0);
+      q:     out bit_vector(wordSize-1 downto 0)
+    );
+  end component;
 
-  signal dmAddrAux, dmInAux, dmOutAux : bit_vector(63 downto 0);
+  signal dmInAux, dmOutAux : bit_vector(63 downto 0);
   signal nextInstrAddr : bit_vector(63 downto 0);
   signal instruction : bit_vector(31 downto 0);
   signal reg2loc, uncondBranch, branch : bit;
@@ -556,15 +550,13 @@ architecture arcpolileg of polilegsc is
       aluCtrl, aluSrc, regWrite,
       opcode, zero,
       -- Instruction Memory
-      nextInstrAddr, instruction,
+      imem_addr, instruction,
       -- Data memory
-      dmAddrAux, dmInAux, dmOutAux
+      dmem_addr, dmem_dati, dmem_dato
      );
-    -- imem_addr ???
+
     instruction <= imem_data;
-    dmem_addr <= dmAddrAux ;
-    dmem_dati <= dmInAux;
-    dmOutAux <= dmem_dato;
+
     control: controlunit port map
      (
       reg2loc, uncondBranch, branch,
@@ -579,13 +571,6 @@ architecture arcpolileg of polilegsc is
       (
         aluOp, opcode, aluCtrl
       );
+    dmem_we <= memWrite;
 
-    process(clock, reset)
-      begin
-        if memWrite = '1' then
-          dmem_we <= '1';
-        else
-          dmem_we <= '0';
-      end if;
-    end process;
 end arcpolileg;

@@ -1,29 +1,29 @@
 v 4
-file . "polilegsc_tb_alunos2 .vhd" "4793e479accfbfc3852e123a34b3a822508c9f31" "20191201034138.538":
-  entity s_8df8e25fab239a96868a773c428cf5a8a29e49e43806d at 1( 0) + 0 on 33;
-  architecture behavioral of s_8df8e25fab239a96868a773c428cf5a8a29e49e43806d at 1( 0) + 713 on 34;
-  entity s_801ae597f34d85cada5c0f8602e8c77a587fae7e8d at 1( 0) + 3088 on 35;
-  architecture behavioral of s_801ae597f34d85cada5c0f8602e8c77a587fae7e8d at 1( 0) + 3645 on 36;
-  entity polilegsc_tb at 1( 0) + 5937 on 37;
-  architecture behavioral of polilegsc_tb at 1( 0) + 6038 on 38;
-file . "processador.vhd" "01fad51ac7c0ffe41ea20aa4346bb0ed9c0bd5d7" "20191201173351.300":
-  entity reg at 1( 0) + 0 on 61;
-  architecture arc of reg at 18( 339) + 0 on 62;
-  entity regfile at 38( 729) + 0 on 63;
-  architecture arc of regfile at 57( 1197) + 0 on 64;
-  entity fulladder at 102( 2364) + 0 on 65;
-  architecture arc of fulladder at 111( 2499) + 0 on 66;
-  entity alu1bit at 117( 2621) + 0 on 67;
-  architecture arcalu of alu1bit at 128( 2847) + 0 on 68;
-  entity alu at 153( 3515) + 0 on 69;
-  architecture arch_alu of alu at 168( 3810) + 0 on 70;
-  entity alucontrol at 200( 4982) + 0 on 71;
-  architecture arc of alucontrol at 210( 5190) + 0 on 72;
-  entity signextend at 227( 5723) + 0 on 73;
-  architecture arc of signextend at 236( 5891) + 0 on 74;
-  entity controlunit at 263( 6785) + 0 on 75;
-  architecture arc of controlunit at 280( 7191) + 0 on 76;
-  entity datapath at 340( 9067) + 0 on 77;
-  architecture arcdata of datapath at 367( 9796) + 0 on 78;
-  entity polilegsc at 477( 12757) + 0 on 79;
-  architecture arcpolileg of polilegsc at 491( 13121) + 0 on 80;
+file . "processador.vhd" "7a6d69cf4b024a8bdb7e4e60ea21b23dd5efeac6" "20191202011821.356":
+  entity reg at 1( 0) + 0 on 235;
+  architecture arc of reg at 18( 340) + 0 on 236;
+  entity regfile at 38( 730) + 0 on 237;
+  architecture arc of regfile at 57( 1198) + 0 on 238;
+  entity fulladder at 101( 2329) + 0 on 239;
+  architecture arc of fulladder at 110( 2464) + 0 on 240;
+  entity alu1bit at 116( 2586) + 0 on 241;
+  architecture arcalu of alu1bit at 127( 2812) + 0 on 242;
+  entity alu at 152( 3480) + 0 on 243;
+  architecture arch_alu of alu at 167( 3775) + 0 on 244;
+  entity alucontrol at 199( 4947) + 0 on 245;
+  architecture arc of alucontrol at 209( 5155) + 0 on 246;
+  entity signextend at 226( 5688) + 0 on 247;
+  architecture arc of signextend at 235( 5856) + 0 on 248;
+  entity controlunit at 262( 6750) + 0 on 249;
+  architecture arc of controlunit at 279( 7156) + 0 on 250;
+  entity datapath at 339( 9032) + 0 on 251;
+  architecture arcdata of datapath at 366( 9761) + 0 on 252;
+  entity polilegsc at 461( 12480) + 0 on 253;
+  architecture arcpolileg of polilegsc at 475( 12844) + 0 on 254;
+file . "polilegsc_tb.vhd" "b5dd0b37e376110ef46c261744e1d82746b2c748" "20191202001919.815":
+  entity tb_ram at 1( 0) + 0 on 129;
+  architecture behavioral of tb_ram at 17( 371) + 0 on 130;
+  entity tb_rom at 46( 1440) + 0 on 131;
+  architecture behavioral of tb_rom at 60( 1740) + 0 on 132;
+  entity polilegsc_tb at 82( 2940) + 0 on 133;
+  architecture behavioral of polilegsc_tb at 89( 3043) + 0 on 134;
